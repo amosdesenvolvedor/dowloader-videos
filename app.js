@@ -66,7 +66,6 @@ form.addEventListener("submit", async (event) => {
   const payload = {
     url: form.elements.url.value.trim(),
     format: form.elements.format.value,
-    quality: form.elements.quality.value,
   };
 
   button.disabled = true;

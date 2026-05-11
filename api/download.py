@@ -46,7 +46,6 @@ class handler(BaseHTTPRequestHandler):
 def resolve_download(payload):
     url = str(payload.get("url", "")).strip()
     media_format = payload.get("format", "best")
-    quality = payload.get("quality", "best")
 
     if not url.startswith(("http://", "https://")):
         raise ValueError("Cole um link válido começando com http:// ou https://.")
@@ -60,10 +59,8 @@ def resolve_download(payload):
     command = ["--no-playlist", "-g"]
     if media_format == "audio":
         command.extend(["-f", "bestaudio[ext=m4a]/bestaudio/best"])
-    elif quality != "best":
-        command.extend(["-f", f"b[ext=mp4][height<={quality}]/best[height<={quality}]/best"])
     else:
-        command.extend(["-f", "b[ext=mp4]/best"])
+        command.extend(["-f", "best[ext=mp4]/best"])
     command.append(url)
 
     direct_url = run_yt_dlp(command).strip().splitlines()[0]
