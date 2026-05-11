@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LinkTube Downloader</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace" aria-label="Downloader de vídeos">
+        <div class="brand-row">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" role="img">
+              <path d="M12 18c0-4 3-7 7-7h26c4 0 7 3 7 7v28c0 4-3 7-7 7H19c-4 0-7-3-7-7V18Z" />
+              <path d="M27 23v18l15-9-15-9Z" />
+              <path d="M22 48h20" />
+            </svg>
+          </div>
+          <div>
+            <p class="eyebrow">Web video downloader</p>
+            <h1>LinkTube Downloader</h1>
+          </div>
+        </div>
+
+        <form id="downloadForm" class="download-form">
+          <label for="videoUrl">Link do vídeo</label>
+          <div class="url-row">
+            <input
+              id="videoUrl"
+              name="url"
+              type="url"
+              placeholder="https://..."
+              autocomplete="url"
+              required
+            />
+            <button type="submit" id="downloadButton">
+              <span class="button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 19h14" />
+                </svg>
+              </span>
+              Baixar
+            </button>
+          </div>
+
+          <div class="options-grid">
+            <label class="field">
+              <span>Formato</span>
+              <select id="format" name="format">
+                <option value="best">Vídeo MP4</option>
+                <option value="audio">Áudio MP3</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Qualidade</span>
+              <select id="quality" name="quality">
+                <option value="best">Melhor disponível</option>
+                <option value="720">Até 720p</option>
+                <option value="480">Até 480p</option>
+                <option value="360">Até 360p</option>
+              </select>
+            </label>
+          </div>
+
+          <p class="hint">
+            Use apenas links de vídeos que você tem direito de baixar. O servidor usa yt-dlp quando disponível.
+          </p>
+        </form>
+
+        <section class="status-panel" aria-live="polite">
+          <div id="statusIcon" class="status-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 5v7l5 3" />
+              <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </div>
+          <div>
+            <h2 id="statusTitle">Pronto para baixar</h2>
+            <p id="statusText">Cole um link, escolha o formato e inicie o download.</p>
+            <a id="resultLink" class="result-link" href="#" hidden>Salvar arquivo</a>
+          </div>
+        </section>
+      </section>
+
+      <aside class="downloads-panel" aria-label="Arquivos baixados">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Biblioteca local</p>
+            <h2>Downloads</h2>
+          </div>
+          <button id="refreshButton" class="icon-button" type="button" aria-label="Atualizar lista">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 12a8 8 0 1 1-2.35-5.65" />
+              <path d="M20 4v6h-6" />
+            </svg>
+          </button>
+        </div>
+
+        <ul id="downloadsList" class="downloads-list"></ul>
+      </aside>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
