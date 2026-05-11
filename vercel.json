@@ -19,6 +19,14 @@
       "use": "@vercel/static"
     },
     {
+      "src": "manifest.webmanifest",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.png",
+      "use": "@vercel/static"
+    },
+    {
       "src": "api/*.py",
       "use": "@vercel/python"
     }
@@ -43,6 +51,22 @@
     {
       "src": "/favicon.svg",
       "dest": "/favicon.svg"
+    },
+    {
+      "src": "/manifest.webmanifest",
+      "dest": "/manifest.webmanifest"
+    },
+    {
+      "src": "/icon-192.png",
+      "dest": "/icon-192.png"
+    },
+    {
+      "src": "/icon-512.png",
+      "dest": "/icon-512.png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "dest": "/apple-touch-icon.png"
     },
     {
       "src": "/(.*)",
