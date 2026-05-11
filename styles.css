@@ -1,15 +1,15 @@
 :root {
   color-scheme: light;
-  --ink: #17212b;
-  --muted: #64707d;
-  --line: #d8e0e6;
-  --paper: #fbfcfd;
+  --ink: #08233f;
+  --muted: #5f7185;
+  --line: #d9e3ec;
+  --paper: #f5f8fb;
   --panel: #ffffff;
-  --teal: #0e8b8f;
-  --teal-dark: #07666a;
-  --coral: #f05d46;
-  --green: #1c8f55;
-  --shadow: 0 18px 50px rgba(23, 33, 43, 0.12);
+  --navy: #061b33;
+  --navy-soft: #0b2f55;
+  --orange: #f58220;
+  --orange-dark: #d96b0f;
+  --shadow: 0 22px 55px rgba(6, 27, 51, 0.22);
 }
 
 * {
@@ -22,8 +22,8 @@ body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(circle at 16% 12%, rgba(240, 93, 70, 0.16), transparent 26rem),
-    linear-gradient(135deg, #f4faf9 0%, #fbfcfd 45%, #f7f1ed 100%);
+    linear-gradient(180deg, rgba(6, 27, 51, 0.96) 0 280px, rgba(245, 248, 251, 0) 280px),
+    linear-gradient(135deg, #edf3f8 0%, #ffffff 48%, #f7fafc 100%);
 }
 
 button,
@@ -49,20 +49,22 @@ svg {
 
 .workspace,
 .downloads-panel {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(216, 224, 230, 0.9);
+  background: var(--panel);
+  border: 1px solid rgba(217, 227, 236, 0.95);
   box-shadow: var(--shadow);
 }
 
 .workspace {
   border-radius: 8px;
   padding: clamp(24px, 5vw, 48px);
+  border-top: 6px solid var(--orange);
 }
 
 .downloads-panel {
   border-radius: 8px;
   padding: 22px;
   min-height: 520px;
+  border-top: 6px solid var(--navy-soft);
 }
 
 .brand-row,
@@ -84,7 +86,8 @@ svg {
   border-radius: 8px;
   display: grid;
   place-items: center;
-  background: var(--ink);
+  background: var(--navy);
+  box-shadow: inset 0 -5px 0 var(--orange);
 }
 
 .brand-mark svg {
@@ -98,13 +101,13 @@ svg {
 }
 
 .brand-mark svg path:nth-child(2) {
-  fill: var(--coral);
-  stroke: var(--coral);
+  fill: var(--orange);
+  stroke: var(--orange);
 }
 
 .eyebrow {
   margin: 0 0 6px;
-  color: var(--teal-dark);
+  color: var(--orange-dark);
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0;
@@ -121,6 +124,7 @@ h1 {
   margin-bottom: 0;
   font-size: clamp(2.1rem, 5vw, 4.4rem);
   line-height: 0.98;
+  color: var(--navy);
 }
 
 .download-form label,
@@ -141,7 +145,7 @@ select {
   height: 52px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--paper);
+  background: #ffffff;
   color: var(--ink);
 }
 
@@ -158,7 +162,7 @@ input:focus,
 select:focus,
 button:focus-visible,
 a:focus-visible {
-  outline: 3px solid rgba(14, 139, 143, 0.25);
+  outline: 3px solid rgba(245, 130, 32, 0.28);
   outline-offset: 2px;
 }
 
@@ -176,12 +180,13 @@ button {
   justify-content: center;
   gap: 8px;
   color: #ffffff;
-  background: var(--teal);
+  background: var(--orange);
   font-weight: 800;
+  box-shadow: 0 10px 20px rgba(245, 130, 32, 0.25);
 }
 
 #downloadButton:hover {
-  background: var(--teal-dark);
+  background: var(--orange-dark);
 }
 
 #downloadButton:disabled {
@@ -233,7 +238,7 @@ button {
   padding: 18px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #f8fbfb;
+  background: linear-gradient(180deg, #ffffff 0%, #f6f9fc 100%);
 }
 
 .status-icon {
@@ -243,8 +248,20 @@ button {
   display: grid;
   place-items: center;
   border-radius: 8px;
-  color: var(--teal-dark);
-  background: rgba(14, 139, 143, 0.12);
+  color: #ffffff;
+  background: var(--navy-soft);
+}
+
+.status-icon[data-type="working"] {
+  background: var(--orange);
+}
+
+.status-icon[data-type="done"] {
+  background: var(--navy-soft);
+}
+
+.status-icon[data-type="error"] {
+  background: #b3261e;
 }
 
 .status-panel h2,
@@ -262,7 +279,7 @@ button {
 .result-link {
   display: inline-block;
   margin-top: 12px;
-  color: var(--green);
+  color: var(--orange-dark);
   font-weight: 800;
   text-decoration: none;
 }
@@ -283,12 +300,12 @@ button {
   height: 42px;
   display: grid;
   place-items: center;
-  color: var(--ink);
-  background: #edf4f3;
+  color: #ffffff;
+  background: var(--navy);
 }
 
 .icon-button:hover {
-  background: #dcebea;
+  background: var(--orange);
 }
 
 .downloads-list {
@@ -302,8 +319,13 @@ button {
 .download-item {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--paper);
+  background: #ffffff;
   overflow: hidden;
+}
+
+.download-item:hover {
+  border-color: rgba(245, 130, 32, 0.55);
+  box-shadow: 0 8px 18px rgba(6, 27, 51, 0.08);
 }
 
 .download-item a {
