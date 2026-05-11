@@ -28,12 +28,29 @@ function formatBytes(bytes) {
   return `${(bytes / 1024 ** index).toFixed(index ? 1 : 0)} ${units[index]}`;
 }
 
+async function readJsonResponse(response) {
+  const text = await response.text();
+  if (!text) return {};
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {
+      error: response.ok
+        ? "A API retornou uma resposta inválida."
+        : `A API retornou erro ${response.status}. Confira os logs da Vercel.`,
+    };
+  }
+}
+
 async function loadDownloads() {
   const response = await fetch("/api/downloads");
-  const data = await response.json();
+  const data = await readJsonResponse(response);
   downloadsList.innerHTML = "";
 
-  if (!data.files.length) {
+  const files = Array.isArray(data.files) ? data.files : [];
+
+  if (!files.length) {
     const empty = document.createElement("p");
     empty.className = "empty-state";
     empty.textContent = data.message || "Nenhum arquivo baixado ainda.";
@@ -41,7 +58,7 @@ async function loadDownloads() {
     return;
   }
 
-  for (const file of data.files) {
+  for (const file of files) {
     const item = document.createElement("li");
     const link = document.createElement("a");
     const name = document.createElement("strong");
@@ -77,9 +94,9 @@ form.addEventListener("submit", async (event) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    const data = await response.json();
+    const data = await readJsonResponse(response);
 
-    if (!response.ok) {
+    if (!response.ok || data.error) {
       throw new Error(data.error || "Não foi possível baixar esse link.");
     }
 

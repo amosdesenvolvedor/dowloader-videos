@@ -2,7 +2,17 @@ import importlib.util
 import json
 import subprocess
 import sys
+from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler
+
+
+YT_DLP_TIMEOUT_SECONDS = 8
+
+
+@dataclass
+class DownloadError(Exception):
+    message: str
+    status: int = 200
 
 
 class handler(BaseHTTPRequestHandler):
@@ -13,8 +23,13 @@ class handler(BaseHTTPRequestHandler):
             self.send_json({"file": result})
         except ValueError as exc:
             self.send_json({"error": str(exc)}, status=400)
-        except RuntimeError as exc:
-            self.send_json({"error": str(exc)}, status=500)
+        except DownloadError as exc:
+            self.send_json({"error": exc.message}, status=exc.status)
+        except Exception:
+            self.send_json(
+                {"error": "Erro interno ao preparar o download. Confira os logs da Vercel."},
+                status=500,
+            )
 
     def do_OPTIONS(self):
         self.send_response(204)
@@ -44,14 +59,20 @@ class handler(BaseHTTPRequestHandler):
 
 
 def resolve_download(payload):
+    if not isinstance(payload, dict):
+        raise ValueError("O pedido enviado pelo navegador é inválido.")
+
     url = str(payload.get("url", "")).strip()
     media_format = payload.get("format", "best")
 
     if not url.startswith(("http://", "https://")):
         raise ValueError("Cole um link válido começando com http:// ou https://.")
 
+    if media_format not in {"best", "audio"}:
+        raise ValueError("Escolha um formato válido para o download.")
+
     if importlib.util.find_spec("yt_dlp") is None:
-        raise RuntimeError("yt-dlp não está disponível no runtime da Vercel.")
+        raise DownloadError("yt-dlp não está disponível no runtime da Vercel.", status=503)
 
     title = run_yt_dlp(["--no-playlist", "--print", "%(title).180B", url]).strip()
     extension = "m4a" if media_format == "audio" else "mp4"
@@ -63,9 +84,13 @@ def resolve_download(payload):
         command.extend(["-f", "best[ext=mp4]/best"])
     command.append(url)
 
-    direct_url = run_yt_dlp(command).strip().splitlines()[0]
+    direct_urls = [line.strip() for line in run_yt_dlp(command).splitlines() if line.strip()]
+    if not direct_urls:
+        raise DownloadError("Não foi possível gerar um link direto para esse vídeo.")
+
+    direct_url = direct_urls[0]
     if not direct_url.startswith(("http://", "https://")):
-        raise RuntimeError("Não foi possível gerar um link direto para esse vídeo.")
+        raise DownloadError("Não foi possível gerar um link direto para esse vídeo.")
 
     return {
         "name": f"{title or 'video'}.{extension}",
@@ -76,16 +101,29 @@ def resolve_download(payload):
 
 
 def run_yt_dlp(arguments):
-    completed = subprocess.run(
-        [sys.executable, "-m", "yt_dlp", *arguments],
-        capture_output=True,
-        text=True,
-        timeout=45,
-        check=False,
-    )
+    try:
+        completed = subprocess.run(
+            [sys.executable, "-m", "yt_dlp", *arguments],
+            capture_output=True,
+            text=True,
+            timeout=YT_DLP_TIMEOUT_SECONDS,
+            check=False,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise DownloadError("O site demorou demais para responder. Tente outro link.") from exc
 
     if completed.returncode != 0:
         message = completed.stderr.strip().splitlines()[-1:] or ["yt-dlp não conseguiu ler esse link."]
-        raise RuntimeError(message[0])
+        raise DownloadError(clean_error(message[0]))
 
     return completed.stdout
+
+
+def clean_error(message):
+    if "Unsupported URL" in message:
+        return "Esse site ou link não é compatível com o downloader."
+    if "Video unavailable" in message or "This video is unavailable" in message:
+        return "Esse vídeo não está disponível para download."
+    if "Sign in to confirm" in message or "cookies" in message.lower():
+        return "Esse vídeo exige login/cookies e não pode ser resolvido pela função serverless."
+    return message

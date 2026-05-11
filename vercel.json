@@ -27,6 +27,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "assets/*",
+      "use": "@vercel/static"
+    },
+    {
       "src": "api/*.py",
       "use": "@vercel/python"
     }
@@ -55,6 +59,10 @@
     {
       "src": "/manifest.webmanifest",
       "dest": "/manifest.webmanifest"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
     },
     {
       "src": "/icon-192.png",
