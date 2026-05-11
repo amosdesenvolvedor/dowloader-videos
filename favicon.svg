@@ -1,6 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="12" fill="#061b33"/>
-  <path d="M17 18c0-3.3 2.7-6 6-6h18c3.3 0 6 2.7 6 6v24c0 3.3-2.7 6-6 6H23c-3.3 0-6-2.7-6-6V18Z" fill="none" stroke="#ffffff" stroke-width="4"/>
-  <path d="M29 24v16l13-8-13-8Z" fill="#f58220"/>
-  <path d="M22 54h20" fill="none" stroke="#f58220" stroke-width="5" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="LinkTube Downloader">
+  <defs>
+    <linearGradient id="bg" x1="32" y1="20" x2="224" y2="236" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0d3158"/>
+      <stop offset="1" stop-color="#061427"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="92" y1="74" x2="179" y2="181" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffad32"/>
+      <stop offset="1" stop-color="#f15b22"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="256" height="256" rx="52" fill="url(#bg)"/>
+  <rect x="58" y="48" width="140" height="132" rx="28" fill="#f8fbff"/>
+  <rect x="74" y="64" width="108" height="100" rx="18" fill="#0b2747"/>
+  <path d="M113 87v54l47-27-47-27Z" fill="url(#accent)"/>
+  <path d="M88 210h80" fill="none" stroke="#ff8a24" stroke-width="20" stroke-linecap="round"/>
+  <path d="M128 179v27" fill="none" stroke="#f8fbff" stroke-width="18" stroke-linecap="round"/>
 </svg>
