@@ -1,12 +1,10 @@
 import importlib.util
 import json
-import subprocess
-import sys
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler
 
 
-YT_DLP_TIMEOUT_SECONDS = 8
+YT_DLP_TIMEOUT_SECONDS = 45
 
 
 @dataclass
@@ -74,56 +72,91 @@ def resolve_download(payload):
     if importlib.util.find_spec("yt_dlp") is None:
         raise DownloadError("yt-dlp não está disponível no runtime da Vercel.", status=503)
 
-    title = run_yt_dlp(["--no-playlist", "--print", "%(title).180B", url]).strip()
-    extension = "m4a" if media_format == "audio" else "mp4"
-
-    command = ["--no-playlist", "-g"]
     if media_format == "audio":
-        command.extend(["-f", "bestaudio[ext=m4a]/bestaudio/best"])
+        format_selector = "bestaudio[ext=m4a]/bestaudio/best"
+        fallback_extension = "m4a"
     else:
-        command.extend(["-f", "best[ext=mp4]/best"])
-    command.append(url)
+        format_selector = "best[ext=mp4][vcodec!=none][acodec!=none]/best[vcodec!=none][acodec!=none]/best"
+        fallback_extension = "mp4"
 
-    direct_urls = [line.strip() for line in run_yt_dlp(command).splitlines() if line.strip()]
-    if not direct_urls:
+    info = extract_video_info(url, format_selector)
+    direct_url = get_direct_url(info)
+    if not direct_url:
         raise DownloadError("Não foi possível gerar um link direto para esse vídeo.")
 
-    direct_url = direct_urls[0]
     if not direct_url.startswith(("http://", "https://")):
         raise DownloadError("Não foi possível gerar um link direto para esse vídeo.")
 
+    title = sanitize_filename(info.get("title") or "video")
+    extension = clean_extension(info.get("ext") or fallback_extension)
+
     return {
-        "name": f"{title or 'video'}.{extension}",
+        "name": f"{title}.{extension}",
         "size": 0,
         "url": direct_url,
         "external": True,
     }
 
 
-def run_yt_dlp(arguments):
+def extract_video_info(url, format_selector):
+    from yt_dlp import YoutubeDL
+    from yt_dlp.utils import DownloadError as YtDlpDownloadError
+
+    options = {
+        "format": format_selector,
+        "noplaylist": True,
+        "quiet": True,
+        "no_warnings": True,
+        "socket_timeout": YT_DLP_TIMEOUT_SECONDS,
+        "source_address": "0.0.0.0",
+    }
+
     try:
-        completed = subprocess.run(
-            [sys.executable, "-m", "yt_dlp", *arguments],
-            capture_output=True,
-            text=True,
-            timeout=YT_DLP_TIMEOUT_SECONDS,
-            check=False,
-        )
-    except subprocess.TimeoutExpired as exc:
+        with YoutubeDL(options) as ydl:
+            return ydl.extract_info(url, download=False)
+    except TimeoutError as exc:
         raise DownloadError("O site demorou demais para responder. Tente outro link.") from exc
+    except YtDlpDownloadError as exc:
+        raise DownloadError(clean_error(str(exc))) from exc
+    except Exception as exc:
+        raise DownloadError(clean_error(str(exc))) from exc
 
-    if completed.returncode != 0:
-        message = completed.stderr.strip().splitlines()[-1:] or ["yt-dlp não conseguiu ler esse link."]
-        raise DownloadError(clean_error(message[0]))
 
-    return completed.stdout
+def get_direct_url(info):
+    if not isinstance(info, dict):
+        return ""
+
+    requested_downloads = info.get("requested_downloads")
+    if isinstance(requested_downloads, list) and requested_downloads:
+        direct_url = requested_downloads[0].get("url", "")
+        if direct_url:
+            return direct_url
+
+    return info.get("url", "")
+
+
+def sanitize_filename(name):
+    safe_name = "".join(char if char not in '<>:"/\\|?*\0' else "-" for char in name)
+    safe_name = " ".join(safe_name.split()).strip(" .")
+    return safe_name[:180] or "video"
+
+
+def clean_extension(extension):
+    extension = str(extension).lower().strip().lstrip(".")
+    if extension and all(char.isalnum() for char in extension):
+        return extension[:8]
+    return "mp4"
 
 
 def clean_error(message):
+    lower_message = message.lower()
+
+    if "timed out" in lower_message or "timeout" in lower_message:
+        return "O site demorou demais para responder. Tente novamente ou use outro link."
     if "Unsupported URL" in message:
         return "Esse site ou link não é compatível com o downloader."
     if "Video unavailable" in message or "This video is unavailable" in message:
         return "Esse vídeo não está disponível para download."
-    if "Sign in to confirm" in message or "cookies" in message.lower():
+    if "Sign in to confirm" in message or "cookies" in lower_message:
         return "Esse vídeo exige login/cookies e não pode ser resolvido pela função serverless."
     return message
