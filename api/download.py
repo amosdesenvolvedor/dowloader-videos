@@ -1,11 +1,14 @@
+import base64
 import importlib.util
 import json
+import os
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 
 YT_DLP_TIMEOUT_SECONDS = 45
+COOKIE_FILE_PATH = "/tmp/youtube-cookies.txt"
 
 
 @dataclass
@@ -160,7 +163,17 @@ def extract_video_info(url, format_selector):
         "no_warnings": True,
         "socket_timeout": YT_DLP_TIMEOUT_SECONDS,
         "source_address": "0.0.0.0",
+        "http_headers": {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            )
+        },
     }
+    cookiefile = get_cookiefile()
+    if cookiefile:
+        options["cookiefile"] = cookiefile
 
     try:
         with YoutubeDL(options) as ydl:
@@ -186,6 +199,27 @@ def get_direct_url(info):
     return info.get("url", "")
 
 
+def get_cookiefile():
+    cookies_base64 = os.environ.get("YOUTUBE_COOKIES_BASE64", "").strip()
+    cookies_text = os.environ.get("YOUTUBE_COOKIES", "").strip()
+
+    if cookies_base64:
+        try:
+            cookies_text = base64.b64decode(cookies_base64).decode("utf-8")
+        except (ValueError, UnicodeDecodeError) as exc:
+            raise DownloadError("A variável YOUTUBE_COOKIES_BASE64 está inválida.") from exc
+
+    if not cookies_text:
+        return ""
+
+    with open(COOKIE_FILE_PATH, "w", encoding="utf-8") as cookie_file:
+        cookie_file.write(cookies_text)
+        if not cookies_text.endswith("\n"):
+            cookie_file.write("\n")
+
+    return COOKIE_FILE_PATH
+
+
 def sanitize_filename(name):
     safe_name = "".join(char if char not in '<>:"/\\|?*\0' else "-" for char in name)
     safe_name = " ".join(safe_name.split()).strip(" .")
@@ -209,5 +243,8 @@ def clean_error(message):
     if "Video unavailable" in message or "This video is unavailable" in message:
         return "Esse vídeo não está disponível para download."
     if "Sign in to confirm" in message or "cookies" in lower_message:
-        return "Esse vídeo exige login/cookies e não pode ser resolvido pela função serverless."
+        return (
+            "O YouTube bloqueou o servidor anônimo da Vercel. "
+            "Configure YOUTUBE_COOKIES_BASE64 na Vercel para permitir esse vídeo."
+        )
     return message

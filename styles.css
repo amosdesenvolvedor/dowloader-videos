@@ -284,6 +284,10 @@ button {
   text-decoration: none;
 }
 
+.result-link[hidden] {
+  display: none;
+}
+
 .result-link:hover {
   text-decoration: underline;
 }

@@ -17,6 +17,8 @@ function setStatus(type, title, text, result) {
     resultLink.textContent = result.external ? `Abrir download de ${result.name}` : `Salvar ${result.name}`;
     resultLink.hidden = false;
   } else {
+    resultLink.removeAttribute("href");
+    resultLink.textContent = "";
     resultLink.hidden = true;
   }
 }
