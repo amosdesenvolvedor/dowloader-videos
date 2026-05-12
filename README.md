@@ -7,7 +7,7 @@ App web serverless para Vercel que recebe um link de vídeo e tenta gerar um lin
 Se o projeto local ainda não estiver vinculado na Vercel, rode uma vez:
 
 ```bash
-vercel link --yes --project dowloader-videos
+vercel link --yes --project downloaderytvideos
 ```
 
 Valide o build local da Vercel:

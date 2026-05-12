@@ -3,3 +3,5 @@ downloads/
 .vercel/
 .vercel
 .venv/
+pyproject.toml
+uv.lock
