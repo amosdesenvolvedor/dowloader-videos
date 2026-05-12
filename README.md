@@ -4,14 +4,28 @@ App web serverless para Vercel que recebe um link de vídeo e tenta gerar um lin
 
 ## Deploy na Vercel
 
+Se o projeto local ainda não estiver vinculado na Vercel, rode uma vez:
+
 ```bash
-vercel
+vercel link --yes --project dowloader-videos
 ```
 
-Ou envie estes arquivos para um repositório GitHub e importe o projeto em:
+Valide o build local da Vercel:
 
-```text
-https://vercel.com/new
+```bash
+vercel build --yes
+```
+
+Publique em produção:
+
+```bash
+vercel --prod
+```
+
+Para um deploy de preview, use:
+
+```bash
+vercel
 ```
 
 ## Arquitetura
