@@ -2,6 +2,7 @@ import importlib.util
 import json
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 
 YT_DLP_TIMEOUT_SECONDS = 45
@@ -60,7 +61,7 @@ def resolve_download(payload):
     if not isinstance(payload, dict):
         raise ValueError("O pedido enviado pelo navegador é inválido.")
 
-    url = str(payload.get("url", "")).strip()
+    url = normalize_video_url(str(payload.get("url", "")).strip())
     media_format = payload.get("format", "best")
 
     if not url.startswith(("http://", "https://")):
@@ -96,6 +97,56 @@ def resolve_download(payload):
         "url": direct_url,
         "external": True,
     }
+
+
+def normalize_video_url(url):
+    parsed = urlparse(url)
+    host = parsed.netloc.lower().removeprefix("www.").removeprefix("m.")
+
+    if host in {"youtube.com", "music.youtube.com"}:
+        return normalize_youtube_url(parsed)
+
+    if host == "youtu.be":
+        return normalize_youtube_short_url(parsed)
+
+    return url
+
+
+def normalize_youtube_url(parsed):
+    query = dict(parse_qsl(parsed.query, keep_blank_values=False))
+    path = parsed.path.rstrip("/")
+
+    if path == "/watch" and query.get("v"):
+        clean_query = {"v": query["v"]}
+        add_time_parameter(query, clean_query)
+        return urlunparse(("https", "www.youtube.com", "/watch", "", urlencode(clean_query), ""))
+
+    if path.startswith(("/shorts/", "/embed/", "/live/")):
+        path_parts = path.strip("/").split("/")
+        video_id = path_parts[1] if len(path_parts) > 1 else ""
+        if video_id:
+            clean_query = {"v": video_id}
+            add_time_parameter(query, clean_query)
+            return urlunparse(("https", "www.youtube.com", "/watch", "", urlencode(clean_query), ""))
+
+    return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
+
+
+def normalize_youtube_short_url(parsed):
+    video_id = parsed.path.strip("/").split("/")[0]
+    if not video_id:
+        return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
+
+    query = dict(parse_qsl(parsed.query, keep_blank_values=False))
+    clean_query = {"v": video_id}
+    add_time_parameter(query, clean_query)
+    return urlunparse(("https", "www.youtube.com", "/watch", "", urlencode(clean_query), ""))
+
+
+def add_time_parameter(source_query, target_query):
+    start_time = source_query.get("t") or source_query.get("start")
+    if start_time:
+        target_query["t"] = start_time
 
 
 def extract_video_info(url, format_selector):
