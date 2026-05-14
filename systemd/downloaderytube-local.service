@@ -1,0 +1,15 @@
+[Unit]
+Description=DownloaderYTube local Vercel server
+After=default.target network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/linuxlite/Documents/SiteOficiais/DownloaderYTube
+Environment=HOME=/home/linuxlite
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/linuxlite/Documents/SiteOficiais/DownloaderYTube/scripts/start-local-server.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

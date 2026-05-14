@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=DownloaderYTube Local
+Comment=Abrir o site local do DownloaderYTube
+Exec=/home/linuxlite/Documents/SiteOficiais/DownloaderYTube/scripts/open-local-site.sh
+Icon=/home/linuxlite/Documents/SiteOficiais/DownloaderYTube/favicon.ico
+Terminal=false
+Categories=Network;
