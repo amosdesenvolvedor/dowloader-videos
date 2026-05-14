@@ -4,5 +4,3 @@
 __pycache__
 downloads
 *.pyc
-pyproject.toml
-uv.lock
